@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import logoImg from '../assets/logo-evento.png';
+import { EVENT_LOGO_SRC } from '../assets/logoBase64';
 import { EVENT_DETAILS } from '../data';
 import { 
   Calendar, 
@@ -143,16 +143,12 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
               }}
             >
               <img 
-                src={logoImg} 
+                src={EVENT_LOGO_SRC} 
                 alt="Logo Oficial - V Encontro Saúde nas Fronteiras Brasil - Paraguai"
-                className="w-44 sm:w-52 md:w-60 h-auto object-contain select-none pointer-events-none"
+                className="w-44 sm:w-52 md:w-60 h-auto object-contain select-none pointer-events-none drop-shadow-xs"
                 loading="eager"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (target.src !== '/logo-evento.png') {
-                    target.src = '/logo-evento.png';
-                  }
-                }}
+                decoding="sync"
+                referrerPolicy="no-referrer"
               />
             </motion.div>
 
