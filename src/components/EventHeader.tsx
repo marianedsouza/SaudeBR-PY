@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
+import logoImg from '../assets/logo-evento.png';
 import { EVENT_DETAILS } from '../data';
 import { 
   Calendar, 
@@ -142,14 +143,14 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
               }}
             >
               <img 
-                src="/logo-evento.png" 
+                src={logoImg} 
                 alt="Logo Oficial - V Encontro Saúde nas Fronteiras Brasil - Paraguai"
                 className="w-44 sm:w-52 md:w-60 h-auto object-contain select-none pointer-events-none"
                 loading="eager"
                 onError={(e) => {
                   const target = e.currentTarget;
-                  if (target.src.indexOf('assets') === -1) {
-                    target.src = '/assets/MATO%20GROSSO%20DO%20SUL%20(1).png';
+                  if (target.src !== '/logo-evento.png') {
+                    target.src = '/logo-evento.png';
                   }
                 }}
               />
