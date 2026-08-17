@@ -56,10 +56,6 @@ export default function App() {
     });
   }, [selectedCategory, searchQuery]);
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const getCategoryCount = (catId: CategoryId) => {
     return PLACES.filter(p => p.category === catId).length;
   };
@@ -78,7 +74,6 @@ export default function App() {
       {/* Official Event Visual Identity Header & Banner */}
       <EventHeader 
         onOpenCopyModal={() => setIsCopyModalOpen(true)}
-        onPrint={handlePrint}
       />
 
       {/* Sticky Interactive Toolbar & Search Bar */}
@@ -133,25 +128,41 @@ export default function App() {
             })}
           </div>
 
-          {/* Quick Search Field */}
-          <div className="relative min-w-[260px] sm:min-w-[300px]">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              id="input-search-places"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar hotéis, gastronomia, bioparque..."
-              className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#00874E]/30 focus:border-[#00874E] transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+          {/* Quick Search Field & Actions */}
+          <div className="flex items-center gap-2 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-64">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                id="input-search-places"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar hotéis, gastronomia, bioparque..."
+                className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#00874E]/30 focus:border-[#00874E] transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            <button
+              id="btn-sticky-download-pdf"
+              onClick={async () => {
+                triggerToast('Gerando e baixando PDF oficial...');
+                const { generateOfficialPDF } = await import('./utils/pdfExport');
+                await generateOfficialPDF();
+                triggerToast('PDF baixado com sucesso!');
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#DA291C] hover:bg-[#b82216] text-white rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs"
+              title="Baixar PDF Oficial"
+            >
+              <span>PDF</span>
+            </button>
           </div>
         </div>
       </div>

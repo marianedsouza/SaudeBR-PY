@@ -15,7 +15,7 @@
   }
 }
 
-/* Custom subtle spin animation for emblem */
+/* Custom subtle animations */
 @keyframes spinSlow {
   from {
     transform: rotate(0deg);
@@ -25,8 +25,21 @@
   }
 }
 
+@keyframes floatSmooth {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(0.8deg);
+  }
+}
+
 .animate-spin-slow {
   animation: spinSlow 30s linear infinite;
+}
+
+.animate-float-slow {
+  animation: floatSmooth 4.5s ease-in-out infinite;
 }
 
 /* Print optimizations */
