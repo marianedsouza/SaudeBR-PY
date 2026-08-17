@@ -7,6 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { CATEGORIES, PLACES, EVENT_DETAILS } from './data';
 import { CategoryId } from './types';
 import { EventHeader } from './components/EventHeader';
+import { SmartFilterBar } from './components/SmartFilterBar';
 import { CategorySection } from './components/CategorySection';
 import { UsefulTips } from './components/UsefulTips';
 import { CopyModal } from './components/CopyModal';
@@ -27,6 +28,7 @@ import {
 export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryId | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeQuickTag, setActiveQuickTag] = useState<string | null>(null);
   const [isCopyModalOpen, setIsCopyModalOpen] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
@@ -76,96 +78,19 @@ export default function App() {
         onOpenCopyModal={() => setIsCopyModalOpen(true)}
       />
 
-      {/* Sticky Interactive Toolbar & Search Bar */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs px-4 sm:px-8 py-3.5 no-print">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          
-          {/* Category Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-            <button
-              id="filter-cat-all"
-              onClick={() => setSelectedCategory('all')}
-              className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer shadow-2xs whitespace-nowrap ${
-                selectedCategory === 'all'
-                  ? 'bg-[#0F2C59] text-white ring-2 ring-[#0F2C59]/30'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Todos ({PLACES.length})</span>
-            </button>
-
-            {CATEGORIES.map((cat) => {
-              const isActive = selectedCategory === cat.id;
-              const count = getCategoryCount(cat.id);
-
-              return (
-                <button
-                  key={cat.id}
-                  id={`filter-cat-${cat.id}`}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer shadow-2xs whitespace-nowrap ${
-                    isActive
-                      ? cat.id === 'hoteis'
-                        ? 'bg-[#0F2C59] text-white ring-2 ring-[#0F2C59]/30'
-                        : cat.id === 'gastronomia'
-                        ? 'bg-[#DA291C] text-white ring-2 ring-red-300'
-                        : cat.id === 'compras'
-                        ? 'bg-[#00874E] text-white ring-2 ring-emerald-300'
-                        : 'bg-[#009E52] text-white ring-2 ring-teal-300'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
-                  }`}
-                >
-                  <span className="text-[10px] opacity-80 font-mono">0{cat.code.replace(/^0+/, '')}</span>
-                  <span>{cat.title}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    isActive ? 'bg-black/20 text-white' : 'bg-slate-200 text-slate-700'
-                  }`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Quick Search Field & Actions */}
-          <div className="flex items-center gap-2 w-full lg:w-auto">
-            <div className="relative flex-1 lg:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                id="input-search-places"
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar hotéis, gastronomia, bioparque..."
-                className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#00874E]/30 focus:border-[#00874E] transition-all"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            <button
-              id="btn-sticky-download-pdf"
-              onClick={async () => {
-                triggerToast('Gerando e baixando PDF oficial...');
-                const { generateOfficialPDF } = await import('./utils/pdfExport');
-                await generateOfficialPDF();
-                triggerToast('PDF baixado com sucesso!');
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#DA291C] hover:bg-[#b82216] text-white rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs"
-              title="Baixar PDF Oficial"
-            >
-              <span>PDF</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Intelligent & Responsive Filter Bar (Mobile & Desktop Optimized) */}
+      <SmartFilterBar
+        categories={CATEGORIES}
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        totalPlacesCount={PLACES.length}
+        filteredPlacesCount={filteredPlaces.length}
+        getCategoryCount={getCategoryCount}
+        activeQuickTag={activeQuickTag}
+        onSelectQuickTag={setActiveQuickTag}
+      />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 py-8">
@@ -280,12 +205,13 @@ export default function App() {
       <footer className="bg-[#0B2545] text-white border-t-4 border-[#00874E] py-8 px-4 sm:px-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-              <span className="text-xs font-bold tracking-wider text-emerald-400 uppercase font-mono">
-                V ENCONTRO SAÚDE NAS FRONTEIRAS • BRASIL - PARAGUAI
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
+            <h3 className="text-xs sm:text-sm font-extrabold tracking-wider text-emerald-400 uppercase font-heading">
+              V ENCONTRO SAÚDE NAS FRONTEIRAS
+            </h3>
+            <p className="text-xs sm:text-sm font-bold tracking-widest text-[#DA291C] uppercase font-mono mt-0.5">
+              BRASIL - PARAGUAI
+            </p>
+            <p className="text-xs text-slate-400 mt-2">
               18 e 19 de Agosto de 2026 • Grand Park Hotel • Campo Grande - MS
             </p>
             <p className="text-[11px] text-slate-500 mt-1">
