@@ -1,0 +1,6 @@
+{
+  "name": "V Encontro Saúde nas Fronteiras Brasil - Paraguai",
+  "description": "Guia oficial de apoio ao participante com programação, local do evento (Grand Park Hotel), hospedagens, gastronomia, Bioparque Pantanal e pontos de interesse em Campo Grande - MS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
