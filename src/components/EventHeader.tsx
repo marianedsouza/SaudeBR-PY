@@ -2,35 +2,43 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { EVENT_LOGO_SRC } from '../assets/logoBase64';
 import { EVENT_DETAILS } from '../data';
+import { Language, TRANSLATIONS } from '../translations';
 import { 
   Calendar, 
   Clock, 
   MapPin, 
   Navigation, 
   HeartHandshake, 
-  Share2, 
   FileDown,
   CheckCircle2,
   Compass,
   Award,
   FileText,
   ExternalLink,
-  MessageCircle
+  MessageCircle,
+  Languages,
+  Globe
 } from 'lucide-react';
 import { generateOfficialPDF } from '../utils/pdfExport';
 
 interface EventHeaderProps {
-  onOpenCopyModal: () => void;
+  language: Language;
+  onToggleLanguage: () => void;
 }
 
-export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => {
+export const EventHeader: React.FC<EventHeaderProps> = ({ 
+  language, 
+  onToggleLanguage 
+}) => {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfSuccess, setPdfSuccess] = useState(false);
+
+  const t = TRANSLATIONS[language];
 
   const handleDownloadPDF = async () => {
     try {
       setIsGeneratingPdf(true);
-      await generateOfficialPDF();
+      await generateOfficialPDF(language);
       setPdfSuccess(true);
       setTimeout(() => setPdfSuccess(false), 3500);
     } catch (error) {
@@ -43,7 +51,9 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
 
   const handleShareWhatsApp = () => {
     const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const shareText = `🏥 *V ENCONTRO SAÚDE NAS FRONTEIRAS BRASIL - PARAGUAI*\n📅 *Data:* 18 e 19 de Agosto de 2026\n📍 *Local:* Grand Park Hotel • Campo Grande - MS\n\n📌 *Guia Oficial do Participante:* Programação, hotéis, restaurantes, Bioparque Pantanal e rotas GPS:\n${currentUrl}`;
+    const shareText = language === 'es'
+      ? `🏥 *V ENCUENTRO SALUD EN LAS FRONTERAS BRASIL - PARAGUAY*\n📅 *Fecha:* 18 y 19 de Agosto de 2026\n📍 *Lugar:* Grand Park Hotel • Campo Grande - MS\n\n📌 *Guía del Participante:* Programa, hoteles, restaurantes, Bioparque Pantanal y rutas GPS:\n${currentUrl}`
+      : `🏥 *V ENCONTRO SAÚDE NAS FRONTEIRAS BRASIL - PARAGUAI*\n📅 *Data:* 18 e 19 de Agosto de 2026\n📍 *Local:* Grand Park Hotel • Campo Grande - MS\n\n📌 *Guia do Participante:* Programação, hotéis, restaurantes, Bioparque Pantanal e rotas GPS:\n${currentUrl}`;
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
@@ -61,23 +71,32 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
           <div className="flex items-center gap-2 min-w-0">
             <span className="inline-block w-2 h-2 rounded-full bg-[#00A859] animate-pulse shrink-0"></span>
             <span className="font-bold tracking-tight text-[#0F2C59] uppercase text-[11px] sm:text-xs truncate">
-              Guia Oficial do Participante
+              {t.officialGuide}
             </span>
             <span className="hidden sm:inline text-slate-300">|</span>
-            <span className="hidden sm:inline text-slate-500 text-[11px]">Campo Grande • MS</span>
+            <span className="hidden sm:inline text-slate-500 text-[11px]">{t.cityState}</span>
           </div>
 
           {/* Clean Action Buttons: Responsive & Minimalist */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Copy Text Button */}
+            {/* Language Translate Button (PT / ES) */}
             <button
-              id="btn-header-copy-text"
-              onClick={onOpenCopyModal}
-              className="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer border border-slate-200 active:scale-95 shadow-2xs"
-              title="Copiar texto do guia formatado"
+              id="btn-header-translate"
+              onClick={onToggleLanguage}
+              className={`inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border active:scale-95 shadow-2xs ${
+                language === 'es'
+                  ? 'bg-blue-900 text-white border-blue-950 hover:bg-blue-800'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-[#00874E] border-emerald-300'
+              }`}
+              title={language === 'pt' ? 'Cambiar a Español' : 'Mudar para Português'}
             >
-              <Share2 className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-              <span className="hidden sm:inline">Copiar Texto</span>
+              <Languages className="w-3.5 h-3.5 shrink-0" />
+              <span className="font-bold">{t.translateBtn}</span>
+              <span className={`text-[10px] font-mono uppercase px-1 py-0.2 rounded font-black ${
+                language === 'es' ? 'bg-white/20 text-white' : 'bg-emerald-200/80 text-emerald-900'
+              }`}>
+                {language === 'pt' ? 'ES' : 'PT'}
+              </span>
             </button>
 
             {/* Download PDF Button */}
@@ -90,22 +109,22 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
                   ? 'bg-emerald-600 text-white ring-2 ring-emerald-300'
                   : 'bg-red-50 hover:bg-red-100 text-[#DA291C] border border-red-200'
               }`}
-              title="Baixar Guia em PDF"
+              title={t.downloadPdf}
             >
               {isGeneratingPdf ? (
                 <>
                   <span className="w-3.5 h-3.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin shrink-0"></span>
-                  <span className="hidden sm:inline">Gerando...</span>
+                  <span className="hidden sm:inline">{t.generating}</span>
                 </>
               ) : pdfSuccess ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
-                  <span className="hidden sm:inline">Baixado!</span>
+                  <span className="hidden sm:inline">{t.downloaded}</span>
                 </>
               ) : (
                 <>
                   <FileDown className="w-3.5 h-3.5 text-[#DA291C] shrink-0" />
-                  <span className="hidden sm:inline">Baixar PDF</span>
+                  <span className="hidden sm:inline">{t.downloadPdf}</span>
                 </>
               )}
             </button>
@@ -118,7 +137,7 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
               title="Compartilhar no WhatsApp"
             >
               <MessageCircle className="w-4 h-4 fill-white shrink-0" />
-              <span className="hidden md:inline">WhatsApp</span>
+              <span className="hidden md:inline">{t.whatsapp}</span>
             </button>
           </div>
         </div>
@@ -156,23 +175,23 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
             <div className="flex flex-col flex-1">
               <div className="inline-flex items-center gap-2 self-center sm:self-start px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[#00874E] text-xs font-bold uppercase tracking-wider mb-2.5">
                 <HeartHandshake className="w-4 h-4" />
-                Integração Binacional em Saúde
+                {t.binationalBadge}
               </div>
 
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-none text-[#00874E] font-heading">
-                V ENCONTRO
+                {t.eventHeading}
               </h1>
               
               <div className="text-2xl sm:text-3xl font-black tracking-tight text-[#0B2545] font-heading mt-1">
-                SAÚDE NAS FRONTEIRAS
+                {t.eventSubheading}
               </div>
               
               <div className="text-lg sm:text-xl font-bold tracking-widest text-[#DA291C] font-mono mt-1">
-                BRASIL - PARAGUAI
+                {t.eventCountry}
               </div>
 
               <p className="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed">
-                Reunião estratégica de cooperação técnica, vigilância epidemiológica e fortalecimento da assistência à saúde na faixa de fronteira entre o Brasil e o Paraguai.
+                {t.eventDescription}
               </p>
 
               {/* Quick Action Links: Certificado & Programação */}
@@ -186,7 +205,7 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
                   title="Emitir ou consultar Certificado do Evento"
                 >
                   <Award className="w-3.5 h-3.5 text-[#DA291C] group-hover:scale-110 transition-transform" />
-                  <span>Certificado</span>
+                  <span>{t.certificateBtn}</span>
                   <ExternalLink className="w-3 h-3 opacity-60" />
                 </a>
 
@@ -199,7 +218,7 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
                   title="Acessar documento oficial com a Programação Completa"
                 >
                   <FileText className="w-3.5 h-3.5 text-[#00874E] group-hover:scale-110 transition-transform" />
-                  <span>Programação</span>
+                  <span>{t.scheduleBtn}</span>
                   <ExternalLink className="w-3 h-3 opacity-60" />
                 </a>
               </div>
@@ -217,12 +236,12 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
                 </div>
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                    DATA DO EVENTO
+                    {t.eventDateLabel}
                   </span>
                   <p className="text-sm font-extrabold text-[#0B2545] leading-tight mt-0.5">
-                    18 e 19 DE AGOSTO DE 2026
+                    {t.eventDates}
                   </p>
-                  <span className="text-[11px] text-emerald-700 font-medium">Terça e Quarta-feira</span>
+                  <span className="text-[11px] text-emerald-700 font-medium">{t.eventDaysDesc}</span>
                 </div>
               </div>
 
@@ -233,11 +252,11 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
                 </div>
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                    HORÁRIOS OFICIAIS
+                    {t.officialHoursLabel}
                   </span>
                   <div className="text-xs font-bold text-slate-800 space-y-0.5 mt-0.5">
-                    <p>• 18/08: <span className="text-[#0F2C59] font-black">15h às 21h</span> (Abertura)</p>
-                    <p>• 19/08: <span className="text-[#0F2C59] font-black">08h às 17h</span> (Técnico)</p>
+                    <p>{t.schedule18} <span className="text-[#0F2C59] font-black">{t.schedule18Type}</span></p>
+                    <p>{t.schedule19} <span className="text-[#0F2C59] font-black">{t.schedule19Type}</span></p>
                   </div>
                 </div>
               </div>
@@ -250,10 +269,10 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#DA291C]">
-                      LOCAL OFICIAL
+                      {t.officialVenueLabel}
                     </span>
                     <span className="text-[9px] font-bold px-1.5 py-0.2 bg-red-100 text-red-800 rounded border border-red-200">
-                      SEDE
+                      {t.venueBadge}
                     </span>
                   </div>
                   <p className="text-sm font-black text-[#0B2545] leading-tight mt-0.5">
@@ -270,7 +289,7 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
                       className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-[#0F2C59] hover:bg-[#0B2545] px-2.5 py-1 rounded-md transition-colors"
                     >
                       <Navigation className="w-3 h-3 text-yellow-300" />
-                      Google Maps
+                      {t.openInGoogleMaps}
                     </a>
                     <a
                       href={EVENT_DETAILS.venue.wazeUrl}
@@ -279,7 +298,7 @@ export const EventHeader: React.FC<EventHeaderProps> = ({ onOpenCopyModal }) => 
                       className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 px-2 py-1 rounded-md transition-colors"
                     >
                       <Compass className="w-3 h-3 text-blue-500" />
-                      Waze
+                      {t.openInWaze}
                     </a>
                   </div>
                 </div>

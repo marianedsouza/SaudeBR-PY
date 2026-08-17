@@ -1,8 +1,15 @@
 import { jsPDF } from 'jspdf';
 import { EVENT_DETAILS, CATEGORIES, PLACES } from '../data';
+import { Language, TRANSLATIONS, getLocalizedPlace } from '../translations';
 
-export async function generateOfficialPDF(onProgress?: (status: string) => void): Promise<void> {
-  if (onProgress) onProgress('Preparando documento oficial...');
+export async function generateOfficialPDF(
+  language: Language = 'pt',
+  onProgress?: (status: string) => void
+): Promise<void> {
+  const isEs = language === 'es';
+  const t = TRANSLATIONS[language];
+
+  if (onProgress) onProgress(isEs ? 'Preparando documento oficial...' : 'Preparando documento oficial...');
 
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -16,13 +23,6 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
   const contentWidth = pageWidth - margin * 2;
   let y = margin;
 
-  const primaryNavy = [15, 44, 89]; // #0F2C59
-  const accentGreen = [0, 135, 78]; // #00874E
-  const accentRed = [218, 41, 28]; // #DA291C
-  const darkSlate = [30, 41, 59];
-  const mutedSlate = [100, 116, 139];
-  const lightBg = [248, 250, 252];
-
   const checkPageBreak = (neededHeight: number) => {
     if (y + neededHeight > pageHeight - margin - 12) {
       // Add page number in footer
@@ -30,7 +30,7 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
       doc.setFontSize(8);
       doc.setTextColor(140, 140, 140);
       doc.text(
-        `V Encontro Saúde nas Fronteiras • Página ${pageNum}`,
+        `${isEs ? 'V Encuentro Salud en las Fronteras' : 'V Encontro Saúde nas Fronteiras'} • ${isEs ? 'Página' : 'Página'} ${pageNum}`,
         pageWidth / 2,
         pageHeight - 8,
         { align: 'center' }
@@ -45,7 +45,13 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
-      doc.text('GUIA DE APOIO LOGÍSTICO • CAMPO GRANDE / MS', margin + 4, y + 4.2);
+      doc.text(
+        isEs 
+          ? 'GUÍA DE APOYO LOGÍSTICO • CAMPO GRANDE / MS' 
+          : 'GUIA DE APOIO LOGÍSTICO • CAMPO GRANDE / MS',
+        margin + 4,
+        y + 4.2
+      );
       y += 10;
     }
   };
@@ -65,30 +71,48 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
   doc.setTextColor(0, 230, 130);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('GUIA OFICIAL DE APOIO AO CONGRESSISTA', margin + 6, y + 8);
+  doc.text(
+    isEs ? 'GUÍA OFICIAL DE APOYO AL CONGRESISTA' : 'GUIA OFICIAL DE APOIO AO CONGRESSISTA',
+    margin + 6,
+    y + 8
+  );
 
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(EVENT_DETAILS.title, margin + 6, y + 16);
+  doc.text(
+    isEs ? 'V ENCUENTRO SALUD EN LAS FRONTERAS' : 'V ENCONTRO SAÚDE NAS FRONTEIRAS',
+    margin + 6,
+    y + 16
+  );
 
   doc.setTextColor(255, 200, 50);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(EVENT_DETAILS.subTitle, margin + 6, y + 22);
+  doc.text(
+    isEs ? 'BRASIL - PARAGUAY' : 'BRASIL - PARAGUAI',
+    margin + 6,
+    y + 22
+  );
 
   doc.setTextColor(230, 230, 230);
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
   doc.text(
-    `${EVENT_DETAILS.dateLabel} • Local Oficial: ${EVENT_DETAILS.venue.name} (Campo Grande - MS)`,
+    `${t.eventDates} • ${isEs ? 'Sede Oficial:' : 'Local Oficial:'} ${EVENT_DETAILS.venue.name} (Campo Grande - MS)`,
     margin + 6,
     y + 29
   );
 
   doc.setTextColor(180, 200, 220);
   doc.setFontSize(7.5);
-  doc.text('Realização: SVS / SES / Governo do Estado de Mato Grosso do Sul', margin + 6, y + 34);
+  doc.text(
+    isEs
+      ? 'Realización: SVS / SES / Gobierno del Estado de Mato Grosso do Sul'
+      : 'Realização: SVS / SES / Governo do Estado de Mato Grosso do Sul',
+    margin + 6,
+    y + 34
+  );
 
   y += 42;
 
@@ -102,15 +126,15 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
   doc.setTextColor(0, 135, 78);
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
-  doc.text('DATA DO EVENTO', margin + 3, y + 5);
+  doc.text(t.eventDateLabel, margin + 3, y + 5);
   doc.setTextColor(15, 44, 89);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('18 e 19 de Agosto de 2026', margin + 3, y + 11);
+  doc.text(t.eventDates, margin + 3, y + 11);
   doc.setTextColor(100, 100, 100);
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
-  doc.text('Terça e Quarta-feira', margin + 3, y + 16);
+  doc.text(t.eventDaysDesc, margin + 3, y + 16);
 
   // Box 2: Horários
   const col2X = margin + colWidth + 3;
@@ -119,12 +143,12 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
   doc.setTextColor(15, 44, 89);
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
-  doc.text('HORÁRIOS OFICIAIS', col2X + 3, y + 5);
+  doc.text(t.officialHoursLabel, col2X + 3, y + 5);
   doc.setTextColor(30, 41, 59);
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
-  doc.text('• 18/08: 15h às 21h (Abertura)', col2X + 3, y + 10.5);
-  doc.text('• 19/08: 08h às 17h (Técnico)', col2X + 3, y + 15.5);
+  doc.text(`${t.schedule18} ${t.schedule18Type}`, col2X + 3, y + 10.5);
+  doc.text(`${t.schedule19} ${t.schedule19Type}`, col2X + 3, y + 15.5);
 
   // Box 3: Local / Sede
   const col3X = margin + (colWidth + 3) * 2;
@@ -134,7 +158,7 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
   doc.setTextColor(218, 41, 28);
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
-  doc.text('SEDE OFICIAL', col3X + 3, y + 5);
+  doc.text(t.officialVenueLabel, col3X + 3, y + 5);
   doc.setTextColor(15, 44, 89);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
@@ -171,23 +195,36 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
       headerB = 82;
     }
 
+    const catTitle =
+      category.id === 'hoteis'
+        ? t.catHotelsTitle
+        : category.id === 'gastronomia'
+        ? t.catFoodTitle
+        : category.id === 'compras'
+        ? t.catShoppingTitle
+        : t.catParksTitle;
+
     doc.setFillColor(headerR, headerG, headerB);
     doc.roundedRect(margin, y, contentWidth, 7.5, 1, 1, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(9.5);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${category.code}. ${category.title.toUpperCase()}`, margin + 4, y + 5.2);
+    doc.text(`${category.code}. ${catTitle.toUpperCase()}`, margin + 4, y + 5.2);
 
     doc.setFontSize(7.5);
     doc.setFont('helvetica', 'normal');
-    doc.text(`(${places.length} locais recomendados)`, margin + contentWidth - 4, y + 5.2, {
-      align: 'right',
-    });
+    doc.text(
+      `(${places.length} ${isEs ? 'lugares recomendados' : 'locais recomendados'})`,
+      margin + contentWidth - 4,
+      y + 5.2,
+      { align: 'right' }
+    );
 
     y += 11;
 
-    // Render each place
-    for (const place of places) {
+    // Render each place with localized texts
+    for (const rawPlace of places) {
+      const place = getLocalizedPlace(rawPlace, language);
       checkPageBreak(30);
 
       // Card Background
@@ -203,25 +240,30 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
 
       if (place.isVenue) {
         doc.setFillColor(218, 41, 28);
-        doc.roundedRect(margin + 60, y + 1.5, 36, 4.5, 0.8, 0.8, 'F');
+        doc.roundedRect(margin + 62, y + 1.5, 40, 4.5, 0.8, 0.8, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(6.5);
         doc.setFont('helvetica', 'bold');
-        doc.text('LOCAL DO EVENTO', margin + 78, y + 4.6, { align: 'center' });
+        doc.text(
+          isEs ? 'SEDE DEL EVENTO' : 'LOCAL DO EVENTO',
+          margin + 82,
+          y + 4.6,
+          { align: 'center' }
+        );
       } else if (place.highlightTag) {
         doc.setFillColor(235, 240, 248);
-        doc.roundedRect(margin + 58, y + 1.5, 42, 4.5, 0.8, 0.8, 'F');
+        doc.roundedRect(margin + 60, y + 1.5, 46, 4.5, 0.8, 0.8, 'F');
         doc.setTextColor(15, 44, 89);
         doc.setFontSize(6.5);
         doc.setFont('helvetica', 'bold');
-        doc.text(place.highlightTag.substring(0, 28), margin + 79, y + 4.6, { align: 'center' });
+        doc.text(place.highlightTag.substring(0, 30), margin + 83, y + 4.6, { align: 'center' });
       }
 
       // Address line
       doc.setTextColor(70, 80, 95);
       doc.setFontSize(7.5);
       doc.setFont('helvetica', 'normal');
-      const cleanAddress = doc.splitTextToSize(`Endereço: ${place.addressInfo}`, contentWidth - 8);
+      const cleanAddress = doc.splitTextToSize(`${t.addressLabel}: ${place.addressInfo}`, contentWidth - 8);
       doc.text(cleanAddress[0], margin + 4, y + 10);
 
       // Links line with clickable Google Maps & Instagram
@@ -230,21 +272,32 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
       doc.setFont('helvetica', 'bold');
 
       // Google Maps Link
-      doc.textWithLink(' [ Google Maps: Ver Rota ]', margin + 4, y + 15, { url: place.mapsUrl });
+      doc.textWithLink(
+        ` [ ${isEs ? 'Google Maps: Ver Ruta' : 'Google Maps: Ver Rota'} ]`,
+        margin + 4,
+        y + 15,
+        { url: place.mapsUrl }
+      );
 
       // Site or Instagram
       if (place.siteUrl) {
         doc.setTextColor(0, 135, 78);
-        doc.textWithLink(` | Site: ${place.siteLabel || 'Acessar'}`, margin + 42, y + 15, {
-          url: place.siteUrl,
-        });
+        doc.textWithLink(
+          ` | ${isEs ? 'Sitio' : 'Site'}: ${place.siteLabel || (isEs ? 'Acceder' : 'Acessar')}`,
+          margin + 42,
+          y + 15,
+          { url: place.siteUrl }
+        );
       }
 
       if (place.instagramUrl) {
         doc.setTextColor(180, 30, 90);
-        doc.textWithLink(` | Instagram: ${place.instagramHandle || 'Perfil'}`, margin + 105, y + 15, {
-          url: place.instagramUrl,
-        });
+        doc.textWithLink(
+          ` | Instagram: ${place.instagramHandle || 'Perfil'}`,
+          margin + 105,
+          y + 15,
+          { url: place.instagramUrl }
+        );
       }
 
       // Features or description excerpt
@@ -252,7 +305,11 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
         doc.setTextColor(120, 130, 140);
         doc.setFontSize(6.5);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Destaques: ${place.features.join(' • ')}`, margin + 4, y + 19.5);
+        doc.text(
+          `${isEs ? 'Aspectos destacados' : 'Destaques'}: ${place.features.join(' • ')}`,
+          margin + 4,
+          y + 19.5
+        );
       }
 
       y += 25.5;
@@ -269,18 +326,48 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
   doc.setTextColor(255, 200, 50);
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
-  doc.text('ORIENTAÇÕES PRÁTICAS AOS PARTICIPANTES • CAMPO GRANDE / MS', margin + 5, y + 6);
+  doc.text(
+    isEs
+      ? 'ORIENTACIONES PRÁCTICAS A LOS PARTICIPANTES • CAMPO GRANDE / MS'
+      : 'ORIENTAÇÕES PRÁTICAS AOS PARTICIPANTES • CAMPO GRANDE / MS',
+    margin + 5,
+    y + 6
+  );
 
   doc.setTextColor(240, 240, 240);
   doc.setFontSize(7.2);
   doc.setFont('helvetica', 'normal');
-  doc.text('• Mobilidade: A Av. Afonso Pena concentra hotéis, o Grand Park, restaurantes e o Bioparque Pantanal.', margin + 5, y + 11);
-  doc.text('• Aeroporto Internacional (CGR): Fica a cerca de 15 a 20 minutos de carro do Grand Park Hotel.', margin + 5, y + 16);
-  doc.text('• Contatos de Apoio: SAMU 192 | Bombeiros 193 | Polícia 190 | Grand Park Hotel: (67) 3044-4444', margin + 5, y + 21);
+  doc.text(
+    isEs
+      ? '• Movilidad: La Av. Afonso Pena concentra hoteles, el Grand Park, restaurantes y el Bioparque Pantanal.'
+      : '• Mobilidade: A Av. Afonso Pena concentra hotéis, o Grand Park, restaurantes e o Bioparque Pantanal.',
+    margin + 5,
+    y + 11
+  );
+  doc.text(
+    isEs
+      ? '• Aeropuerto Internacional (CGR): Se encuentra a unos 15-20 minutos en coche del Grand Park Hotel.'
+      : '• Aeroporto Internacional (CGR): Fica a cerca de 15 a 20 minutos de carro do Grand Park Hotel.',
+    margin + 5,
+    y + 16
+  );
+  doc.text(
+    isEs
+      ? '• Contactos de Apoyo: SAMU 192 | Bomberos 193 | Policía 190 | Grand Park Hotel: (67) 3044-4444'
+      : '• Contatos de Apoio: SAMU 192 | Bombeiros 193 | Polícia 190 | Grand Park Hotel: (67) 3044-4444',
+    margin + 5,
+    y + 21
+  );
 
   doc.setTextColor(180, 200, 230);
   doc.setFontSize(6.8);
-  doc.text('Documento gerado automaticamente pelo Guia Oficial de Apoio ao Participante • Agosto de 2026', margin + 5, y + 25.5);
+  doc.text(
+    isEs
+      ? 'Documento generado automáticamente por la Guía Oficial de Apoyo al Participante • Agosto de 2026'
+      : 'Documento gerado automaticamente pelo Guia Oficial de Apoio ao Participante • Agosto de 2026',
+    margin + 5,
+    y + 25.5
+  );
 
   // Add final page footer
   const totalPages = doc.getNumberOfPages();
@@ -289,7 +376,7 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
     doc.setFontSize(8);
     doc.setTextColor(140, 140, 140);
     doc.text(
-      `V Encontro Saúde nas Fronteiras • Brasil - Paraguai • Página ${i} de ${totalPages}`,
+      `${isEs ? 'V Encuentro Salud en las Fronteras • Brasil - Paraguay' : 'V Encontro Saúde nas Fronteiras • Brasil - Paraguai'} • ${isEs ? 'Página' : 'Página'} ${i} ${isEs ? 'de' : 'de'} ${totalPages}`,
       pageWidth / 2,
       pageHeight - 6,
       { align: 'center' }
@@ -297,6 +384,9 @@ export async function generateOfficialPDF(onProgress?: (status: string) => void)
   }
 
   // Save the PDF
-  if (onProgress) onProgress('Finalizando download...');
-  doc.save('Guia_V_Encontro_Saude_Fronteiras_MS.pdf');
+  if (onProgress) onProgress(isEs ? 'Finalizando descarga...' : 'Finalizando download...');
+  const filename = isEs
+    ? 'Guia_V_Encuentro_Salud_Fronteras_MS.pdf'
+    : 'Guia_V_Encontro_Saude_Fronteiras_MS.pdf';
+  doc.save(filename);
 }

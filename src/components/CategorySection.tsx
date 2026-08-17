@@ -1,15 +1,19 @@
 import React from 'react';
 import { CategoryInfo, Place } from '../types';
+import { Language, TRANSLATIONS } from '../translations';
 import { PlaceCard } from './PlaceCard';
 import { Hotel, Utensils, ShoppingBag, Trees } from 'lucide-react';
 
 interface CategorySectionProps {
   category: CategoryInfo;
   places: Place[];
+  language: Language;
 }
 
-export const CategorySection: React.FC<CategorySectionProps> = ({ category, places }) => {
+export const CategorySection: React.FC<CategorySectionProps> = ({ category, places, language }) => {
   if (places.length === 0) return null;
+
+  const t = TRANSLATIONS[language];
 
   const renderIcon = () => {
     switch (category.iconName) {
@@ -41,6 +45,36 @@ export const CategorySection: React.FC<CategorySectionProps> = ({ category, plac
     }
   };
 
+  const getLocalizedTitle = () => {
+    switch (category.id) {
+      case 'hoteis':
+        return t.catHotelsTitle;
+      case 'gastronomia':
+        return t.catFoodTitle;
+      case 'compras':
+        return t.catShoppingTitle;
+      case 'parques':
+        return t.catParksTitle;
+      default:
+        return category.title;
+    }
+  };
+
+  const getLocalizedSubtitle = () => {
+    switch (category.id) {
+      case 'hoteis':
+        return t.catHotelsSubtitle;
+      case 'gastronomia':
+        return t.catFoodSubtitle;
+      case 'compras':
+        return t.catShoppingSubtitle;
+      case 'parques':
+        return t.catParksSubtitle;
+      default:
+        return category.subtitle;
+    }
+  };
+
   return (
     <section 
       id={category.id} 
@@ -55,20 +89,20 @@ export const CategorySection: React.FC<CategorySectionProps> = ({ category, plac
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded bg-white/20 text-white tracking-widest">
-                SEÇÃO {category.code}
+                {language === 'es' ? 'SECCIÓN' : 'SEÇÃO'} {category.code}
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight font-heading mt-0.5">
-              {category.title}
+              {getLocalizedTitle()}
             </h2>
             <p className="text-xs text-white/80 font-normal">
-              {category.subtitle}
+              {getLocalizedSubtitle()}
             </p>
           </div>
         </div>
 
         <span className="self-start sm:self-auto text-xs font-mono font-bold px-3 py-1 rounded-full bg-white text-slate-900 shadow-xs">
-          {places.length} {places.length === 1 ? 'LOCAL CADASTRADO' : 'LOCAIS CADASTRADOS'}
+          {places.length} {places.length === 1 ? t.placesRegistered : t.placesRegisteredPlural}
         </span>
       </div>
 
@@ -80,6 +114,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({ category, plac
             place={place} 
             accentBorder={category.accentBorder}
             accentText={category.accentText}
+            language={language}
           />
         ))}
       </div>
